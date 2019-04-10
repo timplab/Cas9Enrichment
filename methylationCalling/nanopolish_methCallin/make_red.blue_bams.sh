@@ -1,6 +1,6 @@
 #!/bin/bash -l 
 
-# shell script written by timbo_jangles (tgilpat1@jhmi.edu) 
+# shell script written by timbo_jangles (tgilpat1  <a\  jhmi.edu) 
 # this script utilizes extensively code made by isac lee for his nanonome publication !! 
 #thats why all the intermediate files get named things like 'isac format'
   
