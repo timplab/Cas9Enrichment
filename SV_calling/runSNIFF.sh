@@ -11,8 +11,6 @@ outdir=/kyber/Data/Nanopore/Analysis/gilfunk/3deLz_gm12878/ontarg_BAMs_keepSecon
 #/kyber/Data/Nanopore/Analysis/gilfunk/breastPanel/
 
 
-echo 'YU IN GILFUNKS WORLD NOW MEOWTHA FRUCKNA'
-
 declare -a arr=("3SV_gm12878")
 
 for samp in ${arr[@]}
