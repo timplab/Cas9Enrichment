@@ -57,7 +57,7 @@ for (i in seq_along(regs)) {
     dat.reg = dat.tb[queryHits(ovl)[which(subjectHits(ovl)==i)],]
     g = ggplot(dat.reg,aes(x = start, y = frequency, color = sample, group = sample))+
         geom_point(size=0.5,alpha=0.5)+
-        geom_smooth(se=F,span=0.5)+
+        geom_smooth(se=F,span=0.3)+
         theme_bw()
     print(g)
 }
