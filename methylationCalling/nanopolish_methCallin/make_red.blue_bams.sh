@@ -71,7 +71,7 @@ if true; then
      echo $isacbed
      inbam=$maindir/$samp/*phase.bam
      outfile=$maindir/$samp/${samp}_isacHACK_hg38.bam
-     ./script/convertBam.py  -b $inbam -c $isacbed -r $ROI -o $outfile
+     ./nanopolish/convertBam.py  -b $inbam -c $isacbed -r $ROI -o $outfile
      samtools index $outfile
    done
 fi
