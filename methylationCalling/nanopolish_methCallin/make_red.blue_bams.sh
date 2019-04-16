@@ -17,28 +17,21 @@
 
 #this is the main directory where the data analysis is
 #assumes multiple samples.. each of which are subdirectorites
-maindir=input_main_dir
+maindir=path/to/data
 
-ROI=/kyber/Data/Nanopore/Analysis/gilfunk/breastPanel/isacHack/breast_panel_meth.bed
-
-
+#point to bed for regions to query
+ROI=path/to/bed_file.bed
+#or hardcode
+#ROI='chr5:1-2000000'
 
 
 #these names in this array should be the subfolders of the main directory above.. 
  # each representing the data for a different sample 
-declare -a arr=('gm12878' 'mcf10a' 'mcf7' 'mdamb231')
-# "ftc238_g5"  "nrml_g5")
-
-#use this if pointing to a bed for multiple regions for 
- #analysis 
-#ROI=$maindir/breast_panel_meth.bed
+declare -a arr=( 'mcf10a' 'mdamb231'  'mcf7'  'gm12878'  )
 
 echo 'never forget:  you are cosmic being made of light, and though it may be hard to see at times, 
     you have value to those around you. treat them well. treat them kindly. be patient. be forgiving. 
       project love' 
-
-#or hardcode
-#ROI='chr5:1-2000000'
 
 if true; then 
    for samp in ${arr[@]}
@@ -53,6 +46,7 @@ if true; then
      echo $thresh
      ./nanopolish/mtsv2bedGraph.py -i $methcalls -c $thresh  > $maindir/$samp/${samp}_isacFORMATmcalls.bed
 
+      #this is the bed intermediate file.. not the ROI bed 
      inbed=$maindir/$samp/*_isacFORMATmcalls.bed
      echo 'sorting, bgzipping, and tab indexing le bed'
      bedtools sort -i $inbed > $maindir/$samp/${samp}_sorted_isacFormatMethCalls.bed
