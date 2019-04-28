@@ -42,7 +42,7 @@ list.files()
 
     cov.plt= tibble(cov=cov.targ, pos=seq(start(target.gr),end(target.gr)))
 
-    g.cov=ggplot( )+ theme_bw()+  geom_line(data=cov.plt.mom, mapping=aes(x=pos,y=cov), color='indianred1', size=1.5  ) +
+    g.cov=ggplot( )+ theme_bw()+  geom_line(data=cov.plt, mapping=aes(x=pos,y=cov), color='indianred1', size=1.5  ) +
          xlim(target$start,target$stop) 
     
     save_plot(  paste0( nombre, ".targeSIDE_PDF.pdf" ), g.cov, base_aspect_ratio = 1  )
