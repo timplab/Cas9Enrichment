@@ -1,56 +1,46 @@
 #!/bin/bash -l
 
 ######
-# this code is for running the NGLMR aligner followed by the Sniffles SV caller
-#
-#hg38referenc
+# this code is for running the minimap2 aligner followed by the Sniffles SV caller
+#     ..NOTE sniffles was originally designed for use with the NGMLR alignment tool ,  
+   #    so when running with minimap2, you have to have use the --MD flag .. also make sure you are using the latest v. of minimap2 
+            
 
-#ref=/mithril/Data/NGS/Reference/human38/GRCH38.fa
-#fqdir=/kyber/Data/Nanopore/projects/cas9enrich
-outdir=/kyber/Data/Nanopore/Analysis/gilfunk/3deLz_gm12878/ontarg_BAMs_keepSecondary_nglmr
-#/kyber/Data/Nanopore/Analysis/gilfunk/breastPanel/
+#minimap2 index file (created with minimap2 from fasta reference) 
+idx=/mithril/Data/NGS/Reference/human38/GRCH38.mmi
 
+outdir=path_to_save 
+fqdir=path_to_fastqs
 
-declare -a arr=("3SV_gm12878")
+declare -a arr=("mcf10a"  "mdamb231"  "mcf7" )
 
 for samp in ${arr[@]}
 
 do
 
-echo $samp
+  echo $samp
 
+#running minimap2 alignment with the --MD flag 
+  if false; then 
+      fq=$fqdir/$samp*fastq.gz
+      echo 'this is input fastq'
+      echo $fq
+      echo 'startin minimap2 alignment'
+      ~/dl/minimap2/minimap2 --MD -a -x map-ont $idx $datadir/$exp*.fastq*    | \
+         samtools sort -T ${exp}_tmp -o $savedir/${exp}_${build}_mm2.bam
 
-#running NGLMR
-if false; then 
-    fq=$fqdir/$samp*fastq.gz
-    echo 'this is input fastq'
-    echo $fq
-    echo 'startin NGLMR aligner'
-    ~/code/ngmlr-0.2.7/ngmlr -t 4 -r $ref -q $fq -o ${outdir}/${samp}.sam -x ont
-fi
-
-
-# sorting and saving NGLMR output 
-if false; then 
-    insam=$outdir/$samp*sam
-    echo 'this is input sam' 
-    echo $insam 
-    echo 'sorting sam file into a bam file'
-    samtools sort $insam -o $outdir/${samp}_sorted.bam
-    echo 'indexing dat bam babbyyyy' 
-    samtools index $outdir/${samp}_sorted.bam
-fi 
+  fi
 
 #Running SNIFFLES variant caller 
 #  (minimum size 100nt)
-if true; then 
+  if true; then 
     srtdbam=$outdir/${samp}_*.bam
     echo 'this is input bam'
     echo $srtdbam
 
     /home/gilfunk/code/Sniffles-master/bin/sniffles-core-1.0.11/sniffles  --genotype  \
-     --min_homo_af 99.99999 -m $srtdbam -v $outdir/sniffles_out/${samp}_genotype_minHomo999.vcf -l 100
+       --min_homo_af 99.9 -m $srtdbam -v $outdir/sniffles_out/${samp}_sniffCALLS.vcf -l 50
 
-fi
+  fi
 
 done

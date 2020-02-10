@@ -1,0 +1,99 @@
+---
+title: "PLotting Gene Expression from MCF10A, MDAMB231 & MCF7"
+author: Isac Lee
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_notebook : default
+  pdf_document:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: xelatex
+#bibliography: master.bib
+# set dir in the following function to the desired loc
+mainfont: "DejaVu Sans" # Try out some font options if xelatex
+titlefont: "DejaVu Sans" # Try out some font options if xelatex
+---
+
+```{r setup, eval=TRUE, include=FALSE, cache=F, message=F, warning=F, results="hide"}
+rm(list=ls());gc()
+knitr::opts_chunk$set(fig.path='figs/')
+knitr::opts_chunk$set(cache = FALSE, warning = FALSE, 
+                      message = FALSE, cache.lazy = FALSE)
+my_plot_hook <- function(x, options)
+  paste("\n", knitr::hook_plot_tex(x, options), "\n")
+knitr::knit_hooks$set(plot = my_plot_hook)
+```
+
+
+```{r libs, eval=T, include=FALSE, cache=F, message=F, warning=F, results="hide"}
+source("~/Code/ilee/plot/ilee_plot_utils.R")
+```
+
+```{r data , eval = T, include = FALSE, cache=F }
+rnapath = "/kyber/Data/Nanopore/projects/nanonome/analysis/data/bcan/bcan_rnaseq.txt"
+genedbpath = "/kyber/Data/Nanopore/projects/nanonome/analysis/data/hg38/hg38_genes.bed"
+genes = c("GSTP1","KRT19","TPM2","GPX1","SLC12A4")
+outdir = "/kyber/Data/Nanopore/Analysis/gilfunk/breastPanel/190209_methylation_Data/plots"
+
+# read data
+rna = read_tsv(rnapath)
+genedb = read_tsv(genedbpath,col_names=F) %>%
+    dplyr::select(id = X4,name = X7)
+```
+
+```{r select, eval = T, include = FALSE, cache=F }
+# remove versions from gene ids
+genedb$id = sapply(strsplit(genedb$id,"[.]"),"[[",1)
+rna$id = sapply(strsplit(rna$Ensembl_ID,"[.]"),"[[",1)
+# assign gene names to rnaseq data
+rna$name = genedb$name[match(rna$id,genedb$id)]
+
+# select interested genes
+dat.genes = rna[which(rna$name %in% genes),] %>%
+    gather(sample,counts,-Ensembl_ID,-id,-name) %>%
+    dplyr::select(name,counts,sample)
+# add labels
+labs = as.tibble(do.call(rbind,strsplit(dat.genes$sample,"_"))) %>%
+    dplyr::rename(cell=V1,rep=V2)
+dat = bind_cols(dat.genes,labs) %>% 
+    dplyr::select(-sample) %>%
+    dplyr::rename(gene=name)
+dat$cell = factor(dat$cell,levels=c("MCF10A","MDA-MB-231","MCF7")) # change order to make gilfunk happy
+
+# get mean and sd
+dat.sum = dat %>% group_by(cell,gene) %>%
+    summarize(sd = sd(counts),
+              mean = mean(counts))
+```
+
+```{r plot, eval = T, echo = F, fig.height=2, fig.width=8, message=F, warning = F}
+# plot
+ggplot(dat,aes(x=cell,y=counts,color=cell)) +
+    facet_wrap(.~gene,ncol=length(genes),nrow=1,scales="free") +
+    geom_point(alpha = 0.8) +
+    scale_y_log10(limits = c(1,max(dat$counts)))+
+    labs(y = "Normalized\ngene expression\n(log10 scale)") +
+    theme(legend.position = "none",
+          axis.title.x = element_blank(),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(dat,aes(x=cell,y=counts,color=cell)) +
+    facet_wrap(.~gene,ncol=length(genes),nrow=1,scales="free") +
+    geom_jitter(width = 0.1) +
+    scale_y_log10(limits = c(1,max(dat$counts)))+
+    labs(y = "Normalized\ngene expression\n(log10 scale)") +
+    theme(legend.position = "none",
+          axis.title.x = element_blank(),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(dat.sum,aes(x=cell,y=mean,fill=cell)) +
+    facet_wrap(.~gene,ncol=length(genes),nrow=1,scales="free") +
+    geom_bar(stat="identity",color="black",
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin=mean-sd,ymax=mean+sd),width=0.2,
+                  position=position_dodge(0.9))+
+    scale_y_log10(limits = c(1,max(dat$counts)))+
+    labs(y = "Normalized\ngene expression\n(log10 scale)") +
+    theme(legend.position = "none",
+          axis.title.x = element_blank(),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+```
